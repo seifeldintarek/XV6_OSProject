@@ -1,4 +1,17 @@
 struct stat;
+struct proc_info;
+struct proc;
+struct sched_stat {
+  int initial_priority;
+  int remaining_time;
+  int pid;
+  int creation_time;
+  int run_time;
+  int waiting_time;
+  int turnaround_time;
+  int finish_time;
+};
+
 
 // system calls
 int fork(void);
@@ -22,6 +35,14 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int kbdint(void);
+int count(void);
+int getppid(void);
+int getptable(int, struct proc_info*);
+int shutdown(void);
+int random(void);
+int getprocinfo( struct sched_stat*);
+int setpriority(int pid, int priority);
 
 // ulib.c
 int stat(const char*, struct stat*);
