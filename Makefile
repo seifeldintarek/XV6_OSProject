@@ -144,6 +144,8 @@ UPROGS=\
 	$U/_mv\
 	$U/_cp\
 	$U/_find\
+	$U/_sleep\
+	$U/_add\
 	$U/_datetimetest\
 
 
