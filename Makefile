@@ -146,6 +146,7 @@ UPROGS=\
 	$U/_find\
 	$U/_sleep\
 	$U/_add\
+	$U/_tail\
 	$U/_datetimetest\
 
 
