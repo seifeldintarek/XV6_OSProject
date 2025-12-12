@@ -148,7 +148,7 @@ sys_datetime(void)
   timestamp_to_date(current_timestamp, &r);
 
   // Adjust for UTC-2 timezone
-  adjust_timezone(&r, -2);
+  adjust_timezone(&r, 2);
 
   // Print the result
   // Note: xv6's printf doesn't support %ld, so we cast to int
