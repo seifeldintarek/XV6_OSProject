@@ -11,6 +11,9 @@ uint ticks;
 
 extern char trampoline[], uservec[], userret[];
 
+extern struct proc proc[NPROC];  // ← ADD THIS LINE
+extern int sched_mode;
+
 // in kernelvec.S, calls kerneltrap().
 void kernelvec();
 
@@ -46,10 +49,10 @@ usertrap(void)
   w_stvec((uint64)kernelvec);
 
   struct proc *p = myproc();
-  
+
   // save user program counter.
   p->trapframe->epc = r_sepc();
-  
+
   if(r_scause() == 8){
     // system call
 
@@ -109,7 +112,7 @@ usertrapret(void)
 
   // set up the registers that trampoline.S's sret will use
   // to get to user space.
-  
+
   // set S Previous Privilege mode to User.
   unsigned long x = r_sstatus();
   x &= ~SSTATUS_SPP; // clear SPP to 0 for user mode
@@ -122,7 +125,7 @@ usertrapret(void)
   // tell trampoline.S the user page table to switch to.
   uint64 satp = MAKE_SATP(p->pagetable);
 
-  // jump to userret in trampoline.S at the top of memory, which 
+  // jump to userret in trampoline.S at the top of memory, which
   // switches to the user page table, restores user registers,
   // and switches to user mode with sret.
   uint64 trampoline_userret = TRAMPOLINE + (userret - trampoline);
@@ -131,14 +134,14 @@ usertrapret(void)
 
 // interrupts and exceptions from kernel code go here via kernelvec,
 // on whatever the current kernel stack is.
-void 
+void
 kerneltrap()
 {
   int which_dev = 0;
   uint64 sepc = r_sepc();
   uint64 sstatus = r_sstatus();
   uint64 scause = r_scause();
-  
+
   if((sstatus & SSTATUS_SPP) == 0)
     panic("kerneltrap: not from supervisor mode");
   if(intr_get() != 0)
@@ -163,19 +166,92 @@ kerneltrap()
 void
 clockintr()
 {
-  if(cpuid() == 0){
-    acquire(&tickslock);
-    ticks++;
-    wakeup(&ticks);
-    release(&tickslock);
-  }
+    // Update global ticks (only on CPU 0)
+    if(cpuid() == 0){
+        acquire(&tickslock);
+        ticks++;
 
-  // ask for the next timer interrupt. this also clears
-  // the interrupt request. 1000000 is about a tenth
-  // of a second.
-  w_stimecmp(r_time() + 1000000);
+        // DEBUG: Print every 100 ticks
+        // if(ticks % 100 == 0) {
+        //     printf("TICK %d, sched_mode=%d\n", ticks, sched_mode);
+        // }
+
+        update_time();
+        wakeup(&ticks);
+        release(&tickslock);
+    }
+
+    // Handle current running process
+    struct proc *p = myproc();
+    if(p != 0 && p->state == RUNNING){
+        acquire(&p->lock);
+
+        // Update run_time and remaining_time
+        p->run_time++;
+        p->remaining_time = p->initial_priority - p->run_time;
+        if(p->remaining_time < 0)
+            p->remaining_time = 0;
+
+        int current_remaining = p->remaining_time;
+        int current_pid = p->pid;
+        int current_initial = p->initial_priority;
+        release(&p->lock);
+
+        // DEBUG: Print process info
+        if(current_pid >= 4 && current_pid <= 6 && p->run_time % 50 == 0) {
+            printf("  [CLOCK] PID %d: run_time=%d, initial=%d, remaining=%d\n",
+                   current_pid, p->run_time, current_initial, current_remaining);
+        }
+
+        // Check if preemption is needed (only for priority scheduling)
+        if(sched_mode == SCHED_PRIORITY){
+            int should_yield = 0;
+            int preempt_pid = 0;
+            int preempt_remaining = 0;
+            struct proc *other;
+
+            // Scan for higher priority (lower remaining time) RUNNABLE process
+            for(other = proc; other < &proc[NPROC]; other++){
+                if(other == p) continue;  // Skip current process
+
+                acquire(&other->lock);
+                if(other->state == RUNNABLE){
+                    int other_remaining = other->initial_priority - other->run_time;
+                    if(other_remaining < 0) other_remaining = 0;
+
+                    // DEBUG: Show what we found
+                    printf("  [CHECK] Found RUNNABLE PID %d: rem=%d vs current PID %d: rem=%d\n",
+                           other->pid, other_remaining, current_pid, current_remaining);
+
+                    // If another process has LESS remaining time, preempt
+                    if(other_remaining < current_remaining){
+                        should_yield = 1;
+                        preempt_pid = other->pid;
+                        preempt_remaining = other_remaining;
+                        release(&other->lock);
+                        break;  // Found higher priority process
+                    }
+                }
+                release(&other->lock);
+            }
+
+            // Preempt current process if needed
+            if(should_yield){
+                printf("*** PREEMPT: PID %d (rem=%d) yields to PID %d (rem=%d) ***\n",
+                       current_pid, current_remaining, preempt_pid, preempt_remaining);
+                yield();
+            }
+        } else {
+            // DEBUG: Why aren't we checking?
+            if(current_pid >= 4 && current_pid <= 6) {
+                printf("  [SKIP] sched_mode=%d (not PRIORITY)\n", sched_mode);
+            }
+        }
+    }
+
+    // Reset timer for next interrupt
+    w_stimecmp(r_time() + 1000000);
 }
-
 // check if it's an external interrupt or software interrupt,
 // and handle it.
 // returns 2 if timer interrupt,
@@ -215,4 +291,3 @@ devintr()
     return 0;
   }
 }
-

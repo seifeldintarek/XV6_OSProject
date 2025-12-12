@@ -20,3 +20,11 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
+#define SYS_kbdint 22
+#define SYS_count 23
+#define SYS_getppid 24
+#define SYS_getptable 25
+#define SYS_shutdown 26
+#define SYS_random 27
+#define SYS_getprocinfo 29
+#define SYS_setpriority 30
