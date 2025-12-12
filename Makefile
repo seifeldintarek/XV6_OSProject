@@ -142,6 +142,9 @@ UPROGS=\
 	$U/_mv\
 	$U/_cp\
 	$U/_find\
+	$U/_sleep\
+	$U/_add\
+
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
