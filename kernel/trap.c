@@ -176,12 +176,7 @@ clockintr()
 
     struct proc *p = myproc();
     if(p && p->state == RUNNING){
-        acquire(&p->lock);
-        p->remaining_time = p->initial_priority - p->run_time;
-        if(p->remaining_time < 0)
-            p->remaining_time = 0;
-        release(&p->lock);
-
+        
         // PREEMPTION POLICY (VERY SIMPLE)
         if(sched_mode == SCHED_ROUND_ROBIN){
             yield();   // time slice expired

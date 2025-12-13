@@ -166,8 +166,6 @@ found:
   p->finish_time = 0;
 
   // Priority scheduling fields
-  p->initial_priority = DEFAULT_PRIORITY;  // Default burst time estimate
-  p->remaining_time = p->initial_priority; // Initially, remaining = full burst time
 
   return p;
 }
@@ -196,8 +194,7 @@ freeproc(struct proc *p)
   p->waiting_time = 0;
   p->turnaround_time = 0;
   p->finish_time = 0;
-  p->remaining_time = 0;
-  p->initial_priority = 0;   // Reset initial burst time
+
 
 }
 
@@ -329,9 +326,9 @@ int fork(void)
   }
   np->sz = p->sz;
 
-  np->initial_priority = p->initial_priority;  // ✓ Inherit priority
+  // np->initial_priority = p->initial_priority;  // ✓ Inherit priority
   np->run_time = 0;                            // ✓ Child starts fresh
-  np->remaining_time = np->initial_priority;
+  // np->remaining_time = np->initial_priority;
 
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
@@ -447,14 +444,14 @@ getprocinfo(uint64 addr)
 
   // Define the structure layout inside kernel to match user.h
   struct sched_stat {
-    int remaining_time;
+    // int remaining_time;
      int pid;
   int creation_time;
   int run_time;
   int waiting_time;
   int turnaround_time;
   int finish_time;
-  int initial_priority;
+  // int initial_priority;
   } st;
 
   acquire(&wait_lock);
@@ -478,8 +475,8 @@ getprocinfo(uint64 addr)
           st.run_time = pp->run_time;              // Using your variable names
           st.waiting_time = pp->waiting_time;
           st.finish_time=pp->finish_time;         // Using your variable names
-          st.remaining_time = pp->remaining_time;
-          st.initial_priority = pp->initial_priority;
+          // st.remaining_time = pp->remaining_time;
+          // st.initial_priority = pp->initial_priority;
           // -----------------------
 
           // Copy the struct to user space
@@ -618,24 +615,19 @@ struct proc *choose_next_process()
 
 }
 
-  else if (sched_mode == SCHED_PRIORITY) {
-      struct proc *chosen = 0;
-      int min_remaining = __INT_MAX__;
-      for (struct proc *q = proc; q < &proc[NPROC]; q++) {
-          acquire(&q->lock);
-          if (q->state == RUNNABLE) {
-              int remaining = q->initial_priority - q->run_time;
-              if (remaining < 0) remaining = 0;
-
-              if (remaining < min_remaining) {
-                  chosen = q;
-                  min_remaining = remaining;
-              }
-          }
-          release(&q->lock);
-      }
-      return chosen;  // UNLOCKED
-  }
+else if (sched_mode == SCHED_PRIORITY) {
+    struct proc *chosen = 0;
+    for (struct proc *q = proc; q < &proc[NPROC]; q++) {
+        acquire(&q->lock);
+        if (q->state == RUNNABLE) {
+           if (chosen == 0 || q->creation_time > chosen->creation_time) {
+                chosen = q;
+            }
+        }
+        release(&q->lock);
+    }
+    return chosen;  
+}
   return 0;
 }
 
@@ -665,6 +657,7 @@ void scheduler(void)
       {
         p->state = RUNNING;
         c->proc = p;
+        printf("[SCHED] CPU %d -> PID %d (ctime=%d)\n",cpuid(), p->pid, p->creation_time);
         swtch(&c->context, &p->context);//saves sched context and loads process context(resume/starts)
         //3ashan yerga3 llscheduler mra tanya lma y5rog mn el process(by7faz el state)
 
@@ -949,36 +942,36 @@ int getptable(int nproc, uint64 buffer)
 
 
 
-uint64
-sys_setpriority(void)
-{
-    int pid, new_priority;
+// uint64
+// sys_setpriority(void)
+// {
+//     int pid, new_priority;
 
-    argint(0, &pid);
-    argint(1, &new_priority);
+//     argint(0, &pid);
+//     argint(1, &new_priority);
 
-    printf("sys_setpriority: PID %d -> priority %d\n", pid, new_priority);
+//     printf("sys_setpriority: PID %d -> priority %d\n", pid, new_priority);
 
-    struct proc *p;
+//     // struct proc *p;
 
-    for(p = proc; p < &proc[NPROC]; p++){
-        acquire(&p->lock);
+//     // for(p = proc; p < &proc[NPROC]; p++){
+//     //     acquire(&p->lock);
 
-        if(p->pid == pid){
-            p->initial_priority = new_priority;
-            p->remaining_time = new_priority - p->run_time;
-            if(p->remaining_time < 0) p->remaining_time = 0;
+//     //     if(p->pid == pid){
+//     //         p->initial_priority = new_priority;
+//     //         p->remaining_time = new_priority - p->run_time;
+//     //         if(p->remaining_time < 0) p->remaining_time = 0;
 
-            printf("  SUCCESS: PID %d initial_priority=%d, run_time=%d, remaining=%d\n",
-                   pid, p->initial_priority, p->run_time, p->remaining_time);
+//     //         printf("  SUCCESS: PID %d initial_priority=%d, run_time=%d, remaining=%d\n",
+//     //                pid, p->initial_priority, p->run_time, p->remaining_time);
 
-            release(&p->lock);
-            return 0;
-        }
+//     //         release(&p->lock);
+//     //         return 0;
+//     //     }
 
-        release(&p->lock);
-    }
+//     //     release(&p->lock);
+//     // }
 
-    printf("  FAILED: PID %d not found\n", pid);
-    return -1;
-}
+//     printf("  FAILED: PID %d not found\n", pid);
+//     return -1;
+// }

@@ -2,62 +2,61 @@
 #include "kernel/stat.h"
 #include "user/user.h"
 
-void
-cpu_work(int id, int iterations)
+// CPU-intensive work
+void cpu_work(int id, int iterations)
 {
     int i, j;
     volatile int x = 0;
+    int last_tick = uptime();
 
-    for(i = 0; i < iterations; i++){
-        for(j = 0; j < 100000; j++){
+    printf("[P%d | PID %d] START at tick %d\n", id, getpid(), last_tick);
+
+    for (i = 0; i < iterations; i++) {
+        for (j = 0; j < 500000; j++) {
             x += 1;
         }
-        if(i % 25 == 0){
-            printf("[P%d] iter %d\n", id, i);
+
+        if (i % 50 == 0) {
+            int now = uptime();
+            printf("[P%d | PID %d] iter=%d  tick=%d  (+%d ticks)\n",
+                   id, getpid(), i, now, now - last_tick);
+            last_tick = now;
         }
     }
-    printf("[P%d] *** DONE ***\n", id);
+
+    printf("[P%d | PID %d] DONE at tick %d\n\n",
+           id, getpid(), uptime());
 }
 
-int
-main(void)
+int main(void)
 {
+    printf("\n=== Starvation Test (Newer = Higher Priority) ===\n");
+    printf("Legend: whoever prints is CURRENTLY on CPU\n\n");
 
-    // Set parent to very low priority
-    setpriority(getpid(), 99999);
-    printf("Parent priority set to 99999\n\n");
-
-    // Fork ALL processes immediately (no sleep!)
     int pid1 = fork();
-    if(pid1 == 0){
-        setpriority(getpid(), 5000);
-        printf("P1 (PID %d): priority=5000 (LONG)\n", getpid());
+    if (pid1 == 0) {
+        printf("[P1 | PID %d] OLDEST process\n", getpid());
         cpu_work(1, 300);
         exit(0);
     }
 
-    int pid2 = fork();
-    if(pid2 == 0){
-        setpriority(getpid(), 1000);
-        printf("P2 (PID %d): priority=1000 (MEDIUM)\n", getpid());
-        cpu_work(2, 200);
-        exit(0);
+    sleep(1);  // let P1 age
+
+    for (int i = 2; i <= 5; i++) {
+        int pid = fork();
+        if (pid == 0) {
+            printf("[P%d | PID %d] NEWER process\n", i, getpid());
+            cpu_work(i, 150);
+            exit(0);
+        }
+        sleep(1);
     }
 
-    int pid3 = fork();
-    if(pid3 == 0){
-        setpriority(getpid(), 200);
-        printf("P3 (PID %d): priority=200 (SHORT)\n", getpid());
-        cpu_work(3, 100);
-        exit(0);
-    }
+    printf("\n--- All processes created ---\n");
+    printf("Expected finish order: P5 → P4 → P3 → P2 → P1\n\n");
 
-    printf("--- All processes ready ---\n");
-    printf("Expected: P3 finishes first, then P2, then P1\n\n");
-
-    wait(0);
-    wait(0);
-    wait(0);
+    for (int i = 0; i < 5; i++)
+        wait(0);
 
     printf("\n=== Test Complete ===\n");
     exit(0);

@@ -2,8 +2,8 @@ struct stat;
 struct proc_info;
 struct proc;
 struct sched_stat {
-  int initial_priority;
-  int remaining_time;
+  // int initial_priority;
+  // int remaining_time;
   int pid;
   int creation_time;
   int run_time;
@@ -42,7 +42,7 @@ int getptable(int, struct proc_info*);
 int shutdown(void);
 int random(void);
 int getprocinfo( struct sched_stat*);
-int setpriority(int pid, int priority);
+// int setpriority(int pid, int priority);
 
 // ulib.c
 int stat(const char*, struct stat*);

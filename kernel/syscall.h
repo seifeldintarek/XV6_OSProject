@@ -27,4 +27,4 @@
 #define SYS_shutdown 26
 #define SYS_random 27
 #define SYS_getprocinfo 29
-#define SYS_setpriority 30
+// #define SYS_setpriority 30

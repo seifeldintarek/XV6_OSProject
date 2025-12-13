@@ -5,7 +5,7 @@
 #define SCHED_FCFS        1
 #define SCHED_PRIORITY    3
 
-#define DEFAULT_PRIORITY 50
+// #define DEFAULT_PRIORITY 50
 
 extern int sched_mode;  // Declare global scheduler mode
 
@@ -132,8 +132,6 @@ struct proc {
   uint waiting_time;
   uint turnaround_time;
   uint finish_time;
-   int initial_priority;        // Initial burst time estimate (set by user)
-  int remaining_time;          // Calculated: initial_priority - run_time
 
 
 

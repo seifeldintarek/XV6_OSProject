@@ -109,7 +109,7 @@ extern uint64 sys_getptable(void);
 extern uint64 sys_shutdown(void);
 extern uint64 sys_random(void);
 extern uint64 sys_getprocinfo(void);
-extern uint64 sys_setpriority(void);
+// extern uint64 sys_setpriority(void);
 
 
 
@@ -147,7 +147,7 @@ static uint64 (*syscalls[])(void) = {
 [SYS_shutdown]  sys_shutdown,
 [SYS_random]  sys_random,
 [SYS_getprocinfo] sys_getprocinfo,
-[SYS_setpriority]   sys_setpriority,
+// [SYS_setpriority]   sys_setpriority,
 
 };
 

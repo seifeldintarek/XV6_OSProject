@@ -20,12 +20,12 @@ int main(int argc, char *argv[]) {
   int fact = 1;
   int i = 1;
 
-  if(argv[1][0] >= 'a' || argv[1][0] >= 'z')
+  if(argv[1][0] >= 'a' || argv[1][0] <= 'z')
   {
       exit(3);//Invalid Input
   }
 
-  if(argv[1][0] >= 'A' || argv[1][0] >= 'Z')
+  if(argv[1][0] >= 'A' || argv[1][0] <= 'Z')
   {
       exit(3);
   }
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     while (i <= n)
     {
       fact = fact * i;
-      i++;
+      i++; //fact fel i le7ad matewsal lel n
     }
 
     printf("%d\n", fact);

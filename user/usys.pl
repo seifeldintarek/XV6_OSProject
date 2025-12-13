@@ -43,4 +43,4 @@ entry("getptable");
 entry("shutdown");
 entry("random");
 entry("getprocinfo");
-entry("setpriority");
+# entry("setpriority");
