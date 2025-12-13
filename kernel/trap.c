@@ -166,92 +166,35 @@ kerneltrap()
 void
 clockintr()
 {
-    // Update global ticks (only on CPU 0)
     if(cpuid() == 0){
         acquire(&tickslock);
         ticks++;
-
-        // DEBUG: Print every 100 ticks
-        // if(ticks % 100 == 0) {
-        //     printf("TICK %d, sched_mode=%d\n", ticks, sched_mode);
-        // }
-
         update_time();
         wakeup(&ticks);
         release(&tickslock);
     }
 
-    // Handle current running process
     struct proc *p = myproc();
-    if(p != 0 && p->state == RUNNING){
+    if(p && p->state == RUNNING){
         acquire(&p->lock);
-
-        // Update run_time and remaining_time
-        p->run_time++;
         p->remaining_time = p->initial_priority - p->run_time;
         if(p->remaining_time < 0)
             p->remaining_time = 0;
-
-        int current_remaining = p->remaining_time;
-        int current_pid = p->pid;
-        int current_initial = p->initial_priority;
         release(&p->lock);
 
-        // DEBUG: Print process info
-        if(current_pid >= 4 && current_pid <= 6 && p->run_time % 50 == 0) {
-            printf("  [CLOCK] PID %d: run_time=%d, initial=%d, remaining=%d\n",
-                   current_pid, p->run_time, current_initial, current_remaining);
+        // PREEMPTION POLICY (VERY SIMPLE)
+        if(sched_mode == SCHED_ROUND_ROBIN){
+            yield();   // time slice expired
         }
-
-        // Check if preemption is needed (only for priority scheduling)
-        if(sched_mode == SCHED_PRIORITY){
-            int should_yield = 0;
-            int preempt_pid = 0;
-            int preempt_remaining = 0;
-            struct proc *other;
-
-            // Scan for higher priority (lower remaining time) RUNNABLE process
-            for(other = proc; other < &proc[NPROC]; other++){
-                if(other == p) continue;  // Skip current process
-
-                acquire(&other->lock);
-                if(other->state == RUNNABLE){
-                    int other_remaining = other->initial_priority - other->run_time;
-                    if(other_remaining < 0) other_remaining = 0;
-
-                    // DEBUG: Show what we found
-                    printf("  [CHECK] Found RUNNABLE PID %d: rem=%d vs current PID %d: rem=%d\n",
-                           other->pid, other_remaining, current_pid, current_remaining);
-
-                    // If another process has LESS remaining time, preempt
-                    if(other_remaining < current_remaining){
-                        should_yield = 1;
-                        preempt_pid = other->pid;
-                        preempt_remaining = other_remaining;
-                        release(&other->lock);
-                        break;  // Found higher priority process
-                    }
-                }
-                release(&other->lock);
-            }
-
-            // Preempt current process if needed
-            if(should_yield){
-                printf("*** PREEMPT: PID %d (rem=%d) yields to PID %d (rem=%d) ***\n",
-                       current_pid, current_remaining, preempt_pid, preempt_remaining);
-                yield();
-            }
-        } else {
-            // DEBUG: Why aren't we checking?
-            if(current_pid >= 4 && current_pid <= 6) {
-                printf("  [SKIP] sched_mode=%d (not PRIORITY)\n", sched_mode);
-            }
+        else if(sched_mode == SCHED_PRIORITY){
+            yield();   // let scheduler re-evaluate priority
         }
+        // FCFS → DO NOTHING
     }
 
-    // Reset timer for next interrupt
     w_stimecmp(r_time() + 1000000);
 }
+
 // check if it's an external interrupt or software interrupt,
 // and handle it.
 // returns 2 if timer interrupt,

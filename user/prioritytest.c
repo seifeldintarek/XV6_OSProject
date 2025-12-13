@@ -22,7 +22,6 @@ cpu_work(int id, int iterations)
 int
 main(void)
 {
-    printf("\n=== CORRECT Preemption Test ===\n\n");
 
     // Set parent to very low priority
     setpriority(getpid(), 99999);

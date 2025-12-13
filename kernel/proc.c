@@ -422,7 +422,6 @@ void exit(int status)
   p->state = ZOMBIE;
 
   p->finish_time = ticks;
-#define SCHED_LOTTERY 4
   p->turnaround_time = p->finish_time - p->creation_time;
   p->waiting_time = p->turnaround_time - p->run_time;
 
@@ -578,17 +577,17 @@ void update_time()
   struct proc *p;
   for (p = proc; p < &proc[NPROC]; p++)
   {
-    acquire(&p->lock);
+    acquire(&p->lock);//bene2fel 3leha 3ashan ne avoid conflict m3 other resources
     if (p->state == RUNNING)
     {
       p->run_time++;
     }
 
-    release(&p->lock);
+    release(&p->lock);//benefta7 el lock 3ashan ne allow other resources to take it
   }
 }
 
-int sched_mode = SCHED_FCFS; // Assign the chosen scheduler here
+int sched_mode = SCHED_PRIORITY; // Assign the chosen scheduler here
 struct proc *choose_next_process()
 {
   // Implement new sched here
@@ -657,6 +656,7 @@ void scheduler(void)
 
     p = choose_next_process();
 
+    
     if (p != 0)
     {
       acquire(&p->lock);
@@ -665,7 +665,8 @@ void scheduler(void)
       {
         p->state = RUNNING;
         c->proc = p;
-        swtch(&c->context, &p->context);
+        swtch(&c->context, &p->context);//saves sched context and loads process context(resume/starts)
+        //3ashan yerga3 llscheduler mra tanya lma y5rog mn el process(by7faz el state)
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.
