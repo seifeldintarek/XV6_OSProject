@@ -39,7 +39,7 @@ wc(int fd, char *name, int show_lines, int show_words, int show_chars, int show_
 
   // default show all if none selected
   if(!show_lines && !show_words && !show_chars && !show_longest){
-    show_lines = 1; show_words = 1; show_chars = 1;
+    show_lines = 1; show_words = 1; show_chars = 1;show_longest=1;
   }
 
   if(show_lines) printf("%d ", lines);
@@ -65,15 +65,16 @@ main(int argc, char *argv[])
       else if(c=='w') show_words=1;
       else if(c=='c') show_chars=1;
       else if(c=='L') show_longest=1;
+
     }
     i=2; // first file argument
-  } else i=1;
+  } else i=1;//i fdlt b 1 m3ndish esm file
 
   // no files -> stdin
   if(i>=argc){
-    wc(0, "", show_lines, show_words, show_chars, show_longest,
-       &total_lines, &total_words, &total_chars, &total_longest);
+    printf("No files given\n");
     exit(0);
+
   }
 
   for(; i<argc; i++){
@@ -81,6 +82,7 @@ main(int argc, char *argv[])
       printf("wc: cannot open %s\n", argv[i]);
       exit(1);
     }
+
     wc(fd, argv[i], show_lines, show_words, show_chars, show_longest,
        &total_lines, &total_words, &total_chars, &total_longest);
     close(fd);
