@@ -32,8 +32,9 @@ kvmmake(void)
 
   // PLIC
   kvmmap(kpgtbl, PLIC, PLIC, 0x4000000, PTE_R | PTE_W);
-  // shutdown
-  kvmmap(kpgtbl, 0x100000, 0x100000, PGSIZE, PTE_R | PTE_W);
+
+  // CLINT (for mtime register access)
+  kvmmap(kpgtbl, CLINT, CLINT, 0x10000, PTE_R | PTE_W);
 
   // map kernel text executable and read-only.
   kvmmap(kpgtbl, KERNBASE, KERNBASE, (uint64)etext - KERNBASE, PTE_R | PTE_X);
