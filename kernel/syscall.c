@@ -60,9 +60,10 @@ void argint(int n, int *ip)
 // Retrieve an argument as a pointer.
 // Doesn't check for legality, since
 // copyin/copyout will do that.
-void argaddr(int n, uint64 *ip)
+int argaddr(int n, uint64 *ip)
 {
   *ip = argraw(n);
+  return 0;
 }
 
 // Fetch the nth word-sized system call argument as a null-terminated string.
@@ -131,31 +132,6 @@ static uint64 (*syscalls[])(void) = {
     [SYS_link] sys_link,
     [SYS_mkdir] sys_mkdir,
     [SYS_close] sys_close,
-    [SYS_datetime] sys_datetime,
-};
-
-void syscall(void)
-    [SYS_fork] sys_fork,
-    [SYS_exit] sys_exit,
-    [SYS_wait] sys_wait,
-    [SYS_pipe] sys_pipe,
-    [SYS_read] sys_read,
-    [SYS_kill] sys_kill,
-    [SYS_exec] sys_exec,
-    [SYS_fstat] sys_fstat,
-    [SYS_chdir] sys_chdir,
-    [SYS_dup] sys_dup,
-    [SYS_getpid] sys_getpid,
-    [SYS_sbrk] sys_sbrk,
-    [SYS_sleep] sys_sleep,
-    [SYS_uptime] sys_uptime,
-    [SYS_open] sys_open,
-    [SYS_write] sys_write,
-    [SYS_mknod] sys_mknod,
-    [SYS_unlink] sys_unlink,
-    [SYS_link] sys_link,
-    [SYS_mkdir] sys_mkdir,
-    [SYS_close] sys_close,
     [SYS_kbdint] sys_kbdint,
     [SYS_count] sys_count,
     [SYS_getppid] sys_getppid,
@@ -163,9 +139,8 @@ void syscall(void)
     [SYS_shutdown] sys_shutdown,
     [SYS_random] sys_random,
     [SYS_getprocinfo] sys_getprocinfo,
-// [SYS_setpriority]   sys_setpriority,
-}
-;
+    [SYS_datetime] sys_datetime,
+};
 
 uint64 count_sys = 0;
 void syscall(void)

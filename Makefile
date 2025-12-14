@@ -28,7 +28,6 @@ OBJS = \
   $K/sysfile.o \
   $K/kernelvec.o \
   $K/plic.o \
-  $K/virtio_disk.o\
   $K/datetime.o\
   $K/virtio_disk.o \
   $K/sysutil.o\
@@ -132,7 +131,6 @@ mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 
 UPROGS=\
 	$U/_cat\
-	$U/_tail\
 	$U/_echo\
 	$U/_forktest\
 	$U/_grep\
