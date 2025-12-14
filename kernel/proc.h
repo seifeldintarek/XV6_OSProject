@@ -1,4 +1,14 @@
 // Saved registers for kernel context switches.
+
+// schedular constants to set the scheduling mode
+#define SCHED_ROUND_ROBIN 0
+#define SCHED_FCFS        1
+#define SCHED_PRIORITY    3
+
+// #define DEFAULT_PRIORITY 50
+
+extern int sched_mode;  // Declare global scheduler mode
+
 struct context {
   uint64 ra;
   uint64 sp;
@@ -80,6 +90,18 @@ struct trapframe {
 };
 
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+// Add this near the top of proc.h
+
+// Process information structure for getptable system call
+// Process information structure for getptable
+struct proc_info {
+  int pid;           // Process ID
+  int ppid;          // Parent Process ID
+  enum procstate state;  // Process state
+  char name[16];     // Process name
+  uint64 sz;         // Memory size
+};
+
 
 // Per-process state
 struct proc {
@@ -103,5 +125,14 @@ struct proc {
   struct context context;      // swtch() here to run process
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
-  char name[16];               // Process name (debugging)
+  char name[16];
+
+  uint creation_time;          // Ticks when process was created
+  uint run_time;
+  uint waiting_time;
+  uint turnaround_time;
+  uint finish_time;
+
+
+
 };

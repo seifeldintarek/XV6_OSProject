@@ -6,8 +6,13 @@
 // 00001000 -- boot ROM, provided by qemu
 // 02000000 -- CLINT
 // 0C000000 -- PLIC
+<<<<<<< HEAD
 // 10000000 -- uart0
 // 10001000 -- virtio disk
+=======
+// 10000000 -- uart0
+// 10001000 -- virtio disk 
+>>>>>>> prioritychange
 // 80000000 -- boot ROM jumps here in machine mode
 //             -kernel loads the kernel here
 // unused RAM after 80000000.
@@ -37,7 +42,6 @@
 #define CLINT 0x2000000L
 #define CLINT_MTIMECMP(hartid) (CLINT + 0x4000 + 8 * (hartid))
 #define CLINT_MTIME (CLINT + 0xBFF8) // cycles since boot
-
 // the kernel expects there to be RAM
 // for use by the kernel and user pages
 // from physical address 0x80000000 to PHYSTOP.
@@ -50,6 +54,7 @@
 
 // map kernel stacks beneath the trampoline,
 // each surrounded by invalid guard pages.
+<<<<<<< HEAD
 #define KSTACK(p) (TRAMPOLINE - ((p) + 1) * 2 * PGSIZE)
 
 // User memory layout.

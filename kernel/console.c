@@ -142,9 +142,12 @@ int consoleread(int user_dst, uint64 dst, int n)
 // do erase/kill processing, append to cons.buf,
 // wake up consoleread() if a whole line has arrived.
 //
+int keyboard_int_cnt = 0;
+
 void consoleintr(int c)
 {
   acquire(&cons.lock);
+  keyboard_int_cnt++;
 
   switch (c)
   {

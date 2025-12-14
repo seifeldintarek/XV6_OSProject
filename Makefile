@@ -30,6 +30,12 @@ OBJS = \
   $K/plic.o \
   $K/virtio_disk.o\
   $K/datetime.o\
+  $K/virtio_disk.o \
+  $K/sysutil.o\
+  $K/sysptable.o\
+  $K/syscount.o\
+  $K/sysprocessid.o\
+
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -126,9 +132,14 @@ mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 
 UPROGS=\
 	$U/_cat\
+	$U/_tail\
 	$U/_echo\
 	$U/_forktest\
 	$U/_grep\
+	$U/_add\
+	$U/_fact\
+	$U/_touch\
+	$U/_freeze\
 	$U/_init\
 	$U/_kill\
 	$U/_ln\
@@ -141,14 +152,23 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
+	$U/_keycount\
 	$U/_mv\
 	$U/_cp\
+	$U/_write\
+	$U/_diff\
 	$U/_find\
 	$U/_sleep\
 	$U/_add\
 	$U/_tail\
 	$U/_datetimetest\
-
+	$U/_testcount\
+	$U/_testptable\
+	$U/_schedtest\
+	$U/_testppid\
+	$U/_testshutdown\
+	$U/_testrandom\
+	$U/_prioritytest\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
